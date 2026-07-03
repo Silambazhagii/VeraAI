@@ -1,0 +1,1474 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Magicpin AI Bot — Command Center</title>
+    <meta name="description" content="Real-time monitoring dashboard for the Magicpin AI Bot intelligence engine">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        /* ========================================
+           DESIGN TOKENS
+           ======================================== */
+        :root {
+            /* Colors — Dark Mode (Linear / Vercel inspired) */
+            --color-bg:          hsl(225, 15%, 7%);
+            --color-surface:     hsl(225, 14%, 10%);
+            --color-surface-2:   hsl(225, 12%, 13%);
+            --color-surface-3:   hsl(225, 10%, 16%);
+            --color-border:      hsl(225, 10%, 18%);
+            --color-border-subtle: hsl(225, 10%, 14%);
+
+            --color-text:        hsl(225, 15%, 92%);
+            --color-text-secondary: hsl(225, 10%, 55%);
+            --color-text-tertiary:  hsl(225, 8%, 38%);
+
+            --color-primary:     hsl(221, 83%, 65%);
+            --color-primary-subtle: hsla(221, 83%, 65%, 0.12);
+            --color-success:     hsl(145, 63%, 49%);
+            --color-success-subtle: hsla(145, 63%, 49%, 0.12);
+            --color-warning:     hsl(38, 92%, 60%);
+            --color-warning-subtle: hsla(38, 92%, 60%, 0.12);
+            --color-error:       hsl(0, 72%, 60%);
+            --color-error-subtle: hsla(0, 72%, 60%, 0.12);
+            --color-info:        hsl(200, 80%, 60%);
+            --color-info-subtle: hsla(200, 80%, 60%, 0.12);
+
+            /* Typography */
+            --font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+            --font-size-xs:   0.6875rem;   /* 11px */
+            --font-size-sm:   0.75rem;     /* 12px */
+            --font-size-base: 0.8125rem;   /* 13px */
+            --font-size-md:   0.875rem;    /* 14px */
+            --font-size-lg:   1rem;        /* 16px */
+            --font-size-xl:   1.25rem;     /* 20px */
+            --font-size-2xl:  1.5rem;      /* 24px */
+            --font-size-3xl:  2rem;        /* 32px */
+
+            /* Spacing (8px grid) */
+            --space-1:  0.25rem;   /* 4px */
+            --space-2:  0.5rem;    /* 8px */
+            --space-3:  0.75rem;   /* 12px */
+            --space-4:  1rem;      /* 16px */
+            --space-5:  1.25rem;   /* 20px */
+            --space-6:  1.5rem;    /* 24px */
+            --space-8:  2rem;      /* 32px */
+            --space-10: 2.5rem;    /* 40px */
+            --space-12: 3rem;      /* 48px */
+            --space-16: 4rem;      /* 64px */
+
+            /* Radius */
+            --radius-sm:  6px;
+            --radius-md:  10px;
+            --radius-lg:  14px;
+            --radius-xl:  20px;
+            --radius-full: 9999px;
+
+            /* Shadows */
+            --shadow-sm: 0 1px 2px hsla(0, 0%, 0%, 0.3);
+            --shadow-md: 0 4px 12px hsla(0, 0%, 0%, 0.25);
+            --shadow-lg: 0 8px 30px hsla(0, 0%, 0%, 0.35);
+            --shadow-glow: 0 0 40px hsla(221, 83%, 65%, 0.08);
+
+            /* Transitions */
+            --transition-fast: 120ms cubic-bezier(0.25, 0.1, 0.25, 1);
+            --transition-base: 200ms cubic-bezier(0.25, 0.1, 0.25, 1);
+            --transition-slow: 350ms cubic-bezier(0.25, 0.1, 0.25, 1);
+        }
+
+        /* ========================================
+           RESET & BASE
+           ======================================== */
+        *, *::before, *::after {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        html {
+            font-size: 16px;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+            text-rendering: optimizeLegibility;
+        }
+
+        body {
+            font-family: var(--font-family);
+            background: var(--color-bg);
+            color: var(--color-text);
+            line-height: 1.5;
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        /* ========================================
+           LAYOUT
+           ======================================== */
+        .app-layout {
+            display: flex;
+            min-height: 100vh;
+        }
+
+        /* ========================================
+           SIDEBAR
+           ======================================== */
+        .sidebar {
+            width: 240px;
+            background: var(--color-surface);
+            border-right: 1px solid var(--color-border-subtle);
+            display: flex;
+            flex-direction: column;
+            flex-shrink: 0;
+            position: fixed;
+            top: 0;
+            left: 0;
+            bottom: 0;
+            z-index: 100;
+            transition: transform var(--transition-slow);
+        }
+
+        .sidebar-header {
+            padding: var(--space-5) var(--space-5) var(--space-4);
+            border-bottom: 1px solid var(--color-border-subtle);
+        }
+
+        .sidebar-brand {
+            display: flex;
+            align-items: center;
+            gap: var(--space-3);
+        }
+
+        .sidebar-logo {
+            width: 32px;
+            height: 32px;
+            background: linear-gradient(135deg, var(--color-primary), hsl(260, 70%, 65%));
+            border-radius: var(--radius-md);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: var(--font-size-lg);
+            font-weight: 700;
+            color: white;
+            box-shadow: 0 2px 8px hsla(221, 83%, 65%, 0.25);
+        }
+
+        .sidebar-title {
+            font-size: var(--font-size-md);
+            font-weight: 600;
+            color: var(--color-text);
+            letter-spacing: -0.02em;
+        }
+
+        .sidebar-subtitle {
+            font-size: var(--font-size-xs);
+            color: var(--color-text-tertiary);
+            font-weight: 400;
+            margin-top: 1px;
+        }
+
+        .sidebar-nav {
+            padding: var(--space-3) var(--space-2);
+            flex: 1;
+        }
+
+        .sidebar-section-label {
+            font-size: var(--font-size-xs);
+            font-weight: 500;
+            color: var(--color-text-tertiary);
+            text-transform: uppercase;
+            letter-spacing: 0.06em;
+            padding: var(--space-4) var(--space-3) var(--space-2);
+        }
+
+        .sidebar-link {
+            display: flex;
+            align-items: center;
+            gap: var(--space-3);
+            padding: var(--space-2) var(--space-3);
+            border-radius: var(--radius-sm);
+            font-size: var(--font-size-base);
+            font-weight: 400;
+            color: var(--color-text-secondary);
+            text-decoration: none;
+            cursor: pointer;
+            transition: all var(--transition-fast);
+            user-select: none;
+        }
+
+        .sidebar-link:hover {
+            background: var(--color-surface-2);
+            color: var(--color-text);
+        }
+
+        .sidebar-link.active {
+            background: var(--color-primary-subtle);
+            color: var(--color-primary);
+            font-weight: 500;
+        }
+
+        .sidebar-link svg {
+            width: 16px;
+            height: 16px;
+            opacity: 0.7;
+            flex-shrink: 0;
+        }
+
+        .sidebar-link.active svg {
+            opacity: 1;
+        }
+
+        .sidebar-footer {
+            padding: var(--space-4) var(--space-5);
+            border-top: 1px solid var(--color-border-subtle);
+        }
+
+        .sidebar-status {
+            display: flex;
+            align-items: center;
+            gap: var(--space-2);
+            font-size: var(--font-size-sm);
+            color: var(--color-text-tertiary);
+        }
+
+        .status-dot {
+            width: 7px;
+            height: 7px;
+            border-radius: var(--radius-full);
+            background: var(--color-success);
+            box-shadow: 0 0 6px var(--color-success);
+            animation: pulse-dot 2s ease-in-out infinite;
+        }
+
+        @keyframes pulse-dot {
+            0%, 100% { opacity: 1; box-shadow: 0 0 6px var(--color-success); }
+            50%      { opacity: 0.6; box-shadow: 0 0 12px var(--color-success); }
+        }
+
+        /* ========================================
+           MAIN CONTENT
+           ======================================== */
+        .main-content {
+            flex: 1;
+            margin-left: 240px;
+            min-height: 100vh;
+        }
+
+        .main-header {
+            position: sticky;
+            top: 0;
+            z-index: 50;
+            background: hsla(225, 15%, 7%, 0.8);
+            backdrop-filter: blur(16px) saturate(180%);
+            -webkit-backdrop-filter: blur(16px) saturate(180%);
+            border-bottom: 1px solid var(--color-border-subtle);
+            padding: var(--space-4) var(--space-8);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .header-left {
+            display: flex;
+            align-items: center;
+            gap: var(--space-4);
+        }
+
+        .mobile-menu-btn {
+            display: none;
+            background: none;
+            border: none;
+            color: var(--color-text-secondary);
+            cursor: pointer;
+            padding: var(--space-2);
+        }
+
+        .page-title {
+            font-size: var(--font-size-md);
+            font-weight: 600;
+            letter-spacing: -0.01em;
+        }
+
+        .header-right {
+            display: flex;
+            align-items: center;
+            gap: var(--space-3);
+        }
+
+        .header-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: var(--space-1);
+            padding: var(--space-1) var(--space-3);
+            background: var(--color-success-subtle);
+            color: var(--color-success);
+            border-radius: var(--radius-full);
+            font-size: var(--font-size-xs);
+            font-weight: 500;
+            letter-spacing: 0.01em;
+        }
+
+        .header-badge::before {
+            content: '';
+            width: 5px;
+            height: 5px;
+            border-radius: var(--radius-full);
+            background: currentColor;
+        }
+
+        .last-refresh {
+            font-size: var(--font-size-xs);
+            color: var(--color-text-tertiary);
+        }
+
+        /* ========================================
+           SECTIONS
+           ======================================== */
+        .page-body {
+            padding: var(--space-8);
+            max-width: 1280px;
+        }
+
+        .section {
+            margin-bottom: var(--space-10);
+            animation: fadeInUp 0.4s ease-out both;
+        }
+
+        .section:nth-child(2) { animation-delay: 0.05s; }
+        .section:nth-child(3) { animation-delay: 0.1s; }
+        .section:nth-child(4) { animation-delay: 0.15s; }
+        .section:nth-child(5) { animation-delay: 0.2s; }
+
+        @keyframes fadeInUp {
+            from { opacity: 0; transform: translateY(8px); }
+            to   { opacity: 1; transform: translateY(0); }
+        }
+
+        .section-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: var(--space-5);
+        }
+
+        .section-title {
+            font-size: var(--font-size-sm);
+            font-weight: 500;
+            color: var(--color-text-tertiary);
+            text-transform: uppercase;
+            letter-spacing: 0.06em;
+        }
+
+        /* ========================================
+           METRIC CARDS (Top Row)
+           ======================================== */
+        .metrics-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: var(--space-4);
+        }
+
+        .metric-card {
+            background: var(--color-surface);
+            border: 1px solid var(--color-border-subtle);
+            border-radius: var(--radius-lg);
+            padding: var(--space-5) var(--space-6);
+            transition: all var(--transition-base);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .metric-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 1px;
+            background: linear-gradient(90deg, transparent, var(--card-accent, var(--color-primary)), transparent);
+            opacity: 0;
+            transition: opacity var(--transition-base);
+        }
+
+        .metric-card:hover {
+            border-color: var(--color-border);
+            box-shadow: var(--shadow-glow);
+            transform: translateY(-1px);
+        }
+
+        .metric-card:hover::before {
+            opacity: 0.6;
+        }
+
+        .metric-card-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: var(--space-3);
+        }
+
+        .metric-label {
+            font-size: var(--font-size-sm);
+            font-weight: 500;
+            color: var(--color-text-secondary);
+        }
+
+        .metric-icon {
+            width: 32px;
+            height: 32px;
+            border-radius: var(--radius-md);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: var(--font-size-md);
+        }
+
+        .metric-icon.blue   { background: var(--color-primary-subtle);  color: var(--color-primary); }
+        .metric-icon.green  { background: var(--color-success-subtle);  color: var(--color-success); }
+        .metric-icon.orange { background: var(--color-warning-subtle);  color: var(--color-warning); }
+        .metric-icon.red    { background: var(--color-error-subtle);    color: var(--color-error); }
+        .metric-icon.cyan   { background: var(--color-info-subtle);     color: var(--color-info); }
+
+        .metric-value {
+            font-size: var(--font-size-2xl);
+            font-weight: 700;
+            letter-spacing: -0.03em;
+            line-height: 1.1;
+            margin-bottom: var(--space-1);
+        }
+
+        .metric-subtext {
+            font-size: var(--font-size-xs);
+            color: var(--color-text-tertiary);
+        }
+
+        /* ========================================
+           SYSTEM INFO CARDS (2-column)
+           ======================================== */
+        .info-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: var(--space-4);
+        }
+
+        .info-card {
+            background: var(--color-surface);
+            border: 1px solid var(--color-border-subtle);
+            border-radius: var(--radius-lg);
+            padding: var(--space-6);
+            transition: border-color var(--transition-base);
+        }
+
+        .info-card:hover {
+            border-color: var(--color-border);
+        }
+
+        .info-card-title {
+            font-size: var(--font-size-md);
+            font-weight: 600;
+            margin-bottom: var(--space-5);
+            letter-spacing: -0.01em;
+            display: flex;
+            align-items: center;
+            gap: var(--space-2);
+        }
+
+        .info-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: var(--space-3) 0;
+            border-bottom: 1px solid var(--color-border-subtle);
+        }
+
+        .info-row:last-child {
+            border-bottom: none;
+        }
+
+        .info-key {
+            font-size: var(--font-size-base);
+            color: var(--color-text-secondary);
+        }
+
+        .info-value {
+            font-size: var(--font-size-base);
+            font-weight: 500;
+            color: var(--color-text);
+        }
+
+        /* ========================================
+           BADGES
+           ======================================== */
+        .badge {
+            display: inline-flex;
+            align-items: center;
+            padding: 2px var(--space-2);
+            border-radius: var(--radius-full);
+            font-size: var(--font-size-xs);
+            font-weight: 500;
+        }
+
+        .badge-success { background: var(--color-success-subtle); color: var(--color-success); }
+        .badge-primary { background: var(--color-primary-subtle); color: var(--color-primary); }
+        .badge-warning { background: var(--color-warning-subtle); color: var(--color-warning); }
+        .badge-error   { background: var(--color-error-subtle);   color: var(--color-error); }
+        .badge-info    { background: var(--color-info-subtle);     color: var(--color-info); }
+
+        /* ========================================
+           ENDPOINT TABLE
+           ======================================== */
+        .endpoint-table-wrap {
+            background: var(--color-surface);
+            border: 1px solid var(--color-border-subtle);
+            border-radius: var(--radius-lg);
+            overflow: hidden;
+        }
+
+        .endpoint-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: var(--font-size-base);
+        }
+
+        .endpoint-table thead th {
+            text-align: left;
+            padding: var(--space-3) var(--space-5);
+            font-size: var(--font-size-xs);
+            font-weight: 500;
+            color: var(--color-text-tertiary);
+            text-transform: uppercase;
+            letter-spacing: 0.06em;
+            background: var(--color-surface-2);
+            border-bottom: 1px solid var(--color-border-subtle);
+        }
+
+        .endpoint-table tbody tr {
+            border-bottom: 1px solid var(--color-border-subtle);
+            transition: background var(--transition-fast);
+        }
+
+        .endpoint-table tbody tr:last-child {
+            border-bottom: none;
+        }
+
+        .endpoint-table tbody tr:hover {
+            background: var(--color-surface-2);
+        }
+
+        .endpoint-table td {
+            padding: var(--space-3) var(--space-5);
+            vertical-align: middle;
+        }
+
+        .method-badge {
+            display: inline-block;
+            padding: 2px var(--space-2);
+            border-radius: var(--radius-sm);
+            font-size: var(--font-size-xs);
+            font-weight: 600;
+            font-family: 'SF Mono', SFMono-Regular, ui-monospace, Menlo, monospace;
+            min-width: 42px;
+            text-align: center;
+        }
+
+        .method-get  { background: var(--color-success-subtle); color: var(--color-success); }
+        .method-post { background: var(--color-primary-subtle); color: var(--color-primary); }
+
+        .endpoint-path {
+            font-family: 'SF Mono', SFMono-Regular, ui-monospace, Menlo, monospace;
+            font-size: var(--font-size-sm);
+            color: var(--color-text);
+        }
+
+        .endpoint-desc {
+            color: var(--color-text-secondary);
+            font-size: var(--font-size-sm);
+        }
+
+        .status-indicator {
+            display: inline-flex;
+            align-items: center;
+            gap: var(--space-1);
+        }
+
+        .status-indicator::before {
+            content: '';
+            width: 6px;
+            height: 6px;
+            border-radius: var(--radius-full);
+        }
+
+        .status-indicator.live::before {
+            background: var(--color-success);
+            box-shadow: 0 0 4px var(--color-success);
+        }
+
+        /* ========================================
+           CONVERSATION PLAYGROUND
+           ======================================== */
+        .playground-card {
+            background: var(--color-surface);
+            border: 1px solid var(--color-border-subtle);
+            border-radius: var(--radius-lg);
+            overflow: hidden;
+        }
+
+        .playground-header {
+            padding: var(--space-4) var(--space-6);
+            background: var(--color-surface-2);
+            border-bottom: 1px solid var(--color-border-subtle);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .playground-header-title {
+            font-size: var(--font-size-md);
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: var(--space-2);
+        }
+
+        .playground-body {
+            display: grid;
+            grid-template-columns: 1fr 300px;
+            min-height: 340px;
+        }
+
+        .chat-area {
+            padding: var(--space-6);
+            display: flex;
+            flex-direction: column;
+        }
+
+        .chat-messages {
+            flex: 1;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: var(--space-3);
+            margin-bottom: var(--space-4);
+            max-height: 240px;
+        }
+
+        .chat-msg {
+            max-width: 75%;
+            padding: var(--space-3) var(--space-4);
+            border-radius: var(--radius-lg);
+            font-size: var(--font-size-base);
+            line-height: 1.5;
+            animation: msgIn 0.25s ease-out;
+        }
+
+        @keyframes msgIn {
+            from { opacity: 0; transform: translateY(6px) scale(0.97); }
+            to   { opacity: 1; transform: translateY(0) scale(1); }
+        }
+
+        .chat-msg.bot {
+            background: var(--color-surface-2);
+            border: 1px solid var(--color-border-subtle);
+            align-self: flex-start;
+            border-bottom-left-radius: var(--radius-sm);
+        }
+
+        .chat-msg.user {
+            background: var(--color-primary-subtle);
+            border: 1px solid hsla(221, 83%, 65%, 0.15);
+            color: var(--color-primary);
+            align-self: flex-end;
+            border-bottom-right-radius: var(--radius-sm);
+        }
+
+        .chat-msg-label {
+            font-size: var(--font-size-xs);
+            font-weight: 500;
+            color: var(--color-text-tertiary);
+            margin-bottom: var(--space-1);
+        }
+
+        .chat-input-area {
+            display: flex;
+            gap: var(--space-2);
+        }
+
+        .chat-input {
+            flex: 1;
+            background: var(--color-surface-2);
+            border: 1px solid var(--color-border);
+            border-radius: var(--radius-md);
+            padding: var(--space-3) var(--space-4);
+            font-size: var(--font-size-base);
+            font-family: var(--font-family);
+            color: var(--color-text);
+            outline: none;
+            transition: border-color var(--transition-fast), box-shadow var(--transition-fast);
+        }
+
+        .chat-input::placeholder {
+            color: var(--color-text-tertiary);
+        }
+
+        .chat-input:focus {
+            border-color: var(--color-primary);
+            box-shadow: 0 0 0 3px var(--color-primary-subtle);
+        }
+
+        .chat-send-btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: var(--space-2);
+            padding: var(--space-3) var(--space-5);
+            background: var(--color-primary);
+            color: white;
+            border: none;
+            border-radius: var(--radius-md);
+            font-size: var(--font-size-base);
+            font-weight: 500;
+            font-family: var(--font-family);
+            cursor: pointer;
+            transition: all var(--transition-fast);
+            white-space: nowrap;
+        }
+
+        .chat-send-btn:hover {
+            background: hsl(221, 83%, 58%);
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px hsla(221, 83%, 65%, 0.25);
+        }
+
+        .chat-send-btn:active {
+            transform: translateY(0);
+        }
+
+        .chat-send-btn:disabled {
+            opacity: 0.4;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .chat-sidebar {
+            border-left: 1px solid var(--color-border-subtle);
+            padding: var(--space-5);
+            background: var(--color-surface-2);
+            font-size: var(--font-size-sm);
+        }
+
+        .chat-sidebar-title {
+            font-size: var(--font-size-xs);
+            font-weight: 500;
+            color: var(--color-text-tertiary);
+            text-transform: uppercase;
+            letter-spacing: 0.06em;
+            margin-bottom: var(--space-3);
+        }
+
+        .chat-meta-row {
+            display: flex;
+            justify-content: space-between;
+            padding: var(--space-2) 0;
+            border-bottom: 1px solid var(--color-border-subtle);
+        }
+
+        .chat-meta-row:last-child {
+            border-bottom: none;
+        }
+
+        .chat-meta-key {
+            color: var(--color-text-tertiary);
+        }
+
+        .chat-meta-value {
+            font-weight: 500;
+            color: var(--color-text);
+        }
+
+        /* ========================================
+           ARCHITECTURE DIAGRAM
+           ======================================== */
+        .arch-card {
+            background: var(--color-surface);
+            border: 1px solid var(--color-border-subtle);
+            border-radius: var(--radius-lg);
+            padding: var(--space-8);
+        }
+
+        .arch-flow {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: var(--space-3);
+            flex-wrap: wrap;
+        }
+
+        .arch-node {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: var(--space-2);
+            padding: var(--space-4) var(--space-5);
+            background: var(--color-surface-2);
+            border: 1px solid var(--color-border);
+            border-radius: var(--radius-md);
+            font-size: var(--font-size-sm);
+            font-weight: 500;
+            transition: all var(--transition-base);
+            min-width: 120px;
+            text-align: center;
+        }
+
+        .arch-node:hover {
+            border-color: var(--color-primary);
+            box-shadow: 0 0 20px var(--color-primary-subtle);
+            transform: translateY(-2px);
+        }
+
+        .arch-node-icon {
+            font-size: var(--font-size-xl);
+        }
+
+        .arch-arrow {
+            color: var(--color-text-tertiary);
+            font-size: var(--font-size-xl);
+            flex-shrink: 0;
+        }
+
+        /* ========================================
+           BUTTON VARIANTS
+           ======================================== */
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: var(--space-2);
+            padding: var(--space-2) var(--space-4);
+            border-radius: var(--radius-md);
+            font-size: var(--font-size-sm);
+            font-weight: 500;
+            font-family: var(--font-family);
+            cursor: pointer;
+            border: 1px solid transparent;
+            transition: all var(--transition-fast);
+        }
+
+        .btn-ghost {
+            background: transparent;
+            border-color: var(--color-border);
+            color: var(--color-text-secondary);
+        }
+
+        .btn-ghost:hover {
+            background: var(--color-surface-2);
+            color: var(--color-text);
+            border-color: var(--color-border);
+        }
+
+        /* ========================================
+           SKELETON LOADER
+           ======================================== */
+        .skeleton {
+            background: linear-gradient(90deg, var(--color-surface-2) 25%, var(--color-surface-3) 50%, var(--color-surface-2) 75%);
+            background-size: 200% 100%;
+            animation: shimmer 1.5s ease-in-out infinite;
+            border-radius: var(--radius-sm);
+        }
+
+        @keyframes shimmer {
+            from { background-position: 200% 0; }
+            to   { background-position: -200% 0; }
+        }
+
+        /* ========================================
+           RESPONSIVE
+           ======================================== */
+        @media (max-width: 1024px) {
+            .metrics-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+            .playground-body {
+                grid-template-columns: 1fr;
+            }
+            .chat-sidebar {
+                border-left: none;
+                border-top: 1px solid var(--color-border-subtle);
+            }
+        }
+
+        @media (max-width: 768px) {
+            .sidebar {
+                transform: translateX(-100%);
+            }
+            .sidebar.open {
+                transform: translateX(0);
+            }
+            .main-content {
+                margin-left: 0;
+            }
+            .page-body {
+                padding: var(--space-4);
+            }
+            .main-header {
+                padding: var(--space-3) var(--space-4);
+            }
+            .mobile-menu-btn {
+                display: block;
+            }
+            .metrics-grid {
+                grid-template-columns: 1fr 1fr;
+                gap: var(--space-3);
+            }
+            .info-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .metrics-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        /* ========================================
+           REDUCED MOTION
+           ======================================== */
+        @media (prefers-reduced-motion: reduce) {
+            *, *::before, *::after {
+                animation-duration: 0.01ms !important;
+                animation-iteration-count: 1 !important;
+                transition-duration: 0.01ms !important;
+            }
+        }
+
+        /* ========================================
+           SCROLLBAR
+           ======================================== */
+        ::-webkit-scrollbar {
+            width: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            background: transparent;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: var(--color-border);
+            border-radius: var(--radius-full);
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: var(--color-text-tertiary);
+        }
+    </style>
+</head>
+<body>
+
+<div class="app-layout">
+    <!-- ====== SIDEBAR ====== -->
+    <aside class="sidebar" id="sidebar">
+        <div class="sidebar-header">
+            <div class="sidebar-brand">
+                <div class="sidebar-logo">M</div>
+                <div>
+                    <div class="sidebar-title">Magicpin AI</div>
+                    <div class="sidebar-subtitle">Command Center</div>
+                </div>
+            </div>
+        </div>
+        <nav class="sidebar-nav">
+            <div class="sidebar-section-label">Overview</div>
+            <a class="sidebar-link active" data-page="dashboard" onclick="switchPage('dashboard', this)">
+                <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="2" y="2" width="5" height="5" rx="1"/><rect x="9" y="2" width="5" height="5" rx="1"/><rect x="2" y="9" width="5" height="5" rx="1"/><rect x="9" y="9" width="5" height="5" rx="1"/></svg>
+                Dashboard
+            </a>
+            <a class="sidebar-link" data-page="endpoints" onclick="switchPage('endpoints', this)">
+                <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M2 4h12M2 8h12M2 12h12"/></svg>
+                API Endpoints
+            </a>
+
+            <div class="sidebar-section-label">Intelligence</div>
+            <a class="sidebar-link" data-page="playground" onclick="switchPage('playground', this)">
+                <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M3 13V3l10 5z"/></svg>
+                Playground
+            </a>
+            <a class="sidebar-link" data-page="architecture" onclick="switchPage('architecture', this)">
+                <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="4" cy="4" r="2"/><circle cx="12" cy="4" r="2"/><circle cx="8" cy="12" r="2"/><path d="M4 6v2l4 4M12 6v2l-4 4"/></svg>
+                Architecture
+            </a>
+        </nav>
+        <div class="sidebar-footer">
+            <div class="sidebar-status">
+                <span class="status-dot"></span>
+                <span id="sidebar-status-text">System Operational</span>
+            </div>
+        </div>
+    </aside>
+
+    <!-- ====== MAIN ====== -->
+    <main class="main-content">
+        <header class="main-header">
+            <div class="header-left">
+                <button class="mobile-menu-btn" onclick="toggleSidebar()" aria-label="Toggle menu">
+                    <svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M3 5h14M3 10h14M3 15h14"/></svg>
+                </button>
+                <h1 class="page-title" id="page-title-text">Dashboard</h1>
+            </div>
+            <div class="header-right">
+                <span class="header-badge" id="health-badge">Healthy</span>
+                <span class="last-refresh" id="last-refresh-text">Refreshing…</span>
+            </div>
+        </header>
+
+        <div class="page-body">
+            <!-- ======================== DASHBOARD PAGE ======================== -->
+            <div id="page-dashboard">
+                <!-- Metrics -->
+                <section class="section">
+                    <div class="section-header">
+                        <h2 class="section-title">System Metrics</h2>
+                        <div style="display:flex;gap:var(--space-2);">
+                            <button class="btn btn-ghost" style="border-color:var(--color-error-subtle);color:var(--color-error);" onclick="resetSystem()">⚠️ Reset State</button>
+                            <button class="btn btn-ghost" onclick="refreshDashboard()">↻ Refresh</button>
+                        </div>
+                    </div>
+                    <div class="metrics-grid" id="metrics-grid">
+                        <div class="metric-card" style="--card-accent: var(--color-primary)">
+                            <div class="metric-card-header">
+                                <span class="metric-label">Uptime</span>
+                                <div class="metric-icon blue">⏱</div>
+                            </div>
+                            <div class="metric-value" id="m-uptime">—</div>
+                            <div class="metric-subtext">Since last restart</div>
+                        </div>
+                        <div class="metric-card" style="--card-accent: var(--color-success)">
+                            <div class="metric-card-header">
+                                <span class="metric-label">Merchants</span>
+                                <div class="metric-icon green">🏪</div>
+                            </div>
+                            <div class="metric-value" id="m-merchants">—</div>
+                            <div class="metric-subtext">Active contexts loaded</div>
+                        </div>
+                        <div class="metric-card" style="--card-accent: var(--color-warning)">
+                            <div class="metric-card-header">
+                                <span class="metric-label">Triggers</span>
+                                <div class="metric-icon orange">⚡</div>
+                            </div>
+                            <div class="metric-value" id="m-triggers">—</div>
+                            <div class="metric-subtext">Pending evaluation</div>
+                        </div>
+                        <div class="metric-card" style="--card-accent: var(--color-info)">
+                            <div class="metric-card-header">
+                                <span class="metric-label">Categories</span>
+                                <div class="metric-icon cyan">📂</div>
+                            </div>
+                            <div class="metric-value" id="m-categories">—</div>
+                            <div class="metric-subtext">Defined categories</div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- System Info -->
+                <section class="section">
+                    <div class="section-header">
+                        <h2 class="section-title">System Information</h2>
+                    </div>
+                    <div class="info-grid">
+                        <div class="info-card">
+                            <h3 class="info-card-title">⚙️ Configuration</h3>
+                            <div class="info-row">
+                                <span class="info-key">Team</span>
+                                <span class="info-value" id="meta-team">—</span>
+                            </div>
+                            <div class="info-row">
+                                <span class="info-key">Version</span>
+                                <span class="info-value" id="meta-version">—</span>
+                            </div>
+                            <div class="info-row">
+                                <span class="info-key">Environment</span>
+                                <span class="info-value" id="meta-env">—</span>
+                            </div>
+                            <div class="info-row">
+                                <span class="info-key">Architecture</span>
+                                <span class="info-value" id="meta-arch">—</span>
+                            </div>
+                        </div>
+                        <div class="info-card">
+                            <h3 class="info-card-title">🧠 Intelligence</h3>
+                            <div class="info-row">
+                                <span class="info-key">Model</span>
+                                <span class="info-value" id="meta-model">—</span>
+                            </div>
+                            <div class="info-row">
+                                <span class="info-key">LLM Provider</span>
+                                <span class="info-value" id="meta-llm">—</span>
+                            </div>
+                            <div class="info-row">
+                                <span class="info-key">Storage</span>
+                                <span class="info-value" id="meta-storage">—</span>
+                            </div>
+                            <div class="info-row">
+                                <span class="info-key">Approach</span>
+                                <span class="info-value" id="meta-approach" style="font-size:var(--font-size-xs);max-width:200px;text-align:right">—</span>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+            </div>
+
+            <!-- ======================== ENDPOINTS PAGE ======================== -->
+            <div id="page-endpoints" style="display:none;">
+                <section class="section">
+                    <div class="section-header">
+                        <h2 class="section-title">API Endpoints</h2>
+                        <a class="btn btn-ghost" href="/docs" target="_blank">↗ Open Swagger</a>
+                    </div>
+                    <div class="endpoint-table-wrap">
+                        <table class="endpoint-table">
+                            <thead>
+                                <tr>
+                                    <th>Method</th>
+                                    <th>Path</th>
+                                    <th>Description</th>
+                                    <th>Status</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td><span class="method-badge method-get">GET</span></td>
+                                    <td><span class="endpoint-path">/</span></td>
+                                    <td><span class="endpoint-desc">Root welcome endpoint</span></td>
+                                    <td><span class="status-indicator live">Live</span></td>
+                                </tr>
+                                <tr>
+                                    <td><span class="method-badge method-get">GET</span></td>
+                                    <td><span class="endpoint-path">/v1/healthz</span></td>
+                                    <td><span class="endpoint-desc">Health check with context counts</span></td>
+                                    <td><span class="status-indicator live">Live</span></td>
+                                </tr>
+                                <tr>
+                                    <td><span class="method-badge method-get">GET</span></td>
+                                    <td><span class="endpoint-path">/v1/metadata</span></td>
+                                    <td><span class="endpoint-desc">System metadata and approach</span></td>
+                                    <td><span class="status-indicator live">Live</span></td>
+                                </tr>
+                                <tr>
+                                    <td><span class="method-badge method-post">POST</span></td>
+                                    <td><span class="endpoint-path">/v1/context</span></td>
+                                    <td><span class="endpoint-desc">Ingest and version contexts</span></td>
+                                    <td><span class="status-indicator live">Live</span></td>
+                                </tr>
+                                <tr>
+                                    <td><span class="method-badge method-post">POST</span></td>
+                                    <td><span class="endpoint-path">/v1/tick</span></td>
+                                    <td><span class="endpoint-desc">Trigger evaluation & action generation</span></td>
+                                    <td><span class="status-indicator live">Live</span></td>
+                                </tr>
+                                <tr>
+                                    <td><span class="method-badge method-post">POST</span></td>
+                                    <td><span class="endpoint-path">/v1/reply</span></td>
+                                    <td><span class="endpoint-desc">Process conversational replies</span></td>
+                                    <td><span class="status-indicator live">Live</span></td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </section>
+            </div>
+
+            <!-- ======================== PLAYGROUND PAGE ======================== -->
+            <div id="page-playground" style="display:none;">
+                <section class="section">
+                    <div class="section-header">
+                        <h2 class="section-title">Conversation Playground</h2>
+                    </div>
+                    <div class="playground-card">
+                        <div class="playground-header">
+                            <div class="playground-header-title">💬 Live Chat Simulation</div>
+                            <button class="btn btn-ghost" onclick="resetChat()">Reset</button>
+                        </div>
+                        <div class="playground-body">
+                            <div class="chat-area">
+                                <div class="chat-messages" id="chat-messages">
+                                    <div class="chat-msg bot">
+                                        <div class="chat-msg-label">Bot</div>
+                                        Send a message to begin a conversation. Try: "Yes", "call me", "STOP", or ask a question.
+                                    </div>
+                                </div>
+                                <div class="chat-input-area">
+                                    <input class="chat-input" id="chat-input" type="text" placeholder="Type a reply…" onkeydown="if(event.key==='Enter')sendChat()" autocomplete="off">
+                                    <button class="chat-send-btn" id="chat-send-btn" onclick="sendChat()">Send →</button>
+                                </div>
+                            </div>
+                            <div class="chat-sidebar">
+                                <div class="chat-sidebar-title">Response Metadata</div>
+                                <div class="chat-meta-row">
+                                    <span class="chat-meta-key">Intent</span>
+                                    <span class="chat-meta-value" id="chat-meta-intent">—</span>
+                                </div>
+                                <div class="chat-meta-row">
+                                    <span class="chat-meta-key">State</span>
+                                    <span class="chat-meta-value" id="chat-meta-state">—</span>
+                                </div>
+                                <div class="chat-meta-row">
+                                    <span class="chat-meta-key">Turn</span>
+                                    <span class="chat-meta-value" id="chat-meta-turn">0</span>
+                                </div>
+                                <div class="chat-meta-row">
+                                    <span class="chat-meta-key">Action</span>
+                                    <span class="chat-meta-value" id="chat-meta-action">—</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+            </div>
+
+            <!-- ======================== ARCHITECTURE PAGE ======================== -->
+            <div id="page-architecture" style="display:none;">
+                <section class="section">
+                    <div class="section-header">
+                        <h2 class="section-title">System Architecture</h2>
+                    </div>
+                    <div class="arch-card">
+                        <div class="arch-flow">
+                            <div class="arch-node">
+                                <div class="arch-node-icon">📥</div>
+                                <div>Context API</div>
+                                <span class="badge badge-success">Ingestion</span>
+                            </div>
+                            <div class="arch-arrow">→</div>
+                            <div class="arch-node">
+                                <div class="arch-node-icon">🗃️</div>
+                                <div>Context Store</div>
+                                <span class="badge badge-primary">Thread-Safe</span>
+                            </div>
+                            <div class="arch-arrow">→</div>
+                            <div class="arch-node">
+                                <div class="arch-node-icon">⚡</div>
+                                <div>Tick Engine</div>
+                                <span class="badge badge-warning">Orchestrator</span>
+                            </div>
+                            <div class="arch-arrow">→</div>
+                            <div class="arch-node">
+                                <div class="arch-node-icon">🧠</div>
+                                <div>Decision Engine</div>
+                                <span class="badge badge-info">Intelligence</span>
+                            </div>
+                            <div class="arch-arrow">→</div>
+                            <div class="arch-node">
+                                <div class="arch-node-icon">✉️</div>
+                                <div>Message Composer</div>
+                                <span class="badge badge-success">Output</span>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+                <section class="section">
+                    <div class="section-header">
+                        <h2 class="section-title">Conversation Flow</h2>
+                    </div>
+                    <div class="arch-card">
+                        <div class="arch-flow">
+                            <div class="arch-node">
+                                <div class="arch-node-icon">💬</div>
+                                <div>Reply API</div>
+                                <span class="badge badge-primary">Input</span>
+                            </div>
+                            <div class="arch-arrow">→</div>
+                            <div class="arch-node">
+                                <div class="arch-node-icon">🔍</div>
+                                <div>Intent Classifier</div>
+                                <span class="badge badge-info">Regex</span>
+                            </div>
+                            <div class="arch-arrow">→</div>
+                            <div class="arch-node">
+                                <div class="arch-node-icon">🔄</div>
+                                <div>State Machine</div>
+                                <span class="badge badge-warning">Transitions</span>
+                            </div>
+                            <div class="arch-arrow">→</div>
+                            <div class="arch-node">
+                                <div class="arch-node-icon">📝</div>
+                                <div>Reply Engine</div>
+                                <span class="badge badge-success">Response</span>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+            </div>
+        </div>
+    </main>
+</div>
+
+<script>
+    // =========================================
+    //  STATE
+    // =========================================
+    let chatTurn = 0;
+    const chatConvId = 'playground-' + Date.now();
+
+    // =========================================
+    //  PAGE NAVIGATION
+    // =========================================
+    function switchPage(pageId, linkEl) {
+        document.querySelectorAll('[id^="page-"]').forEach(p => p.style.display = 'none');
+        document.getElementById('page-' + pageId).style.display = '';
+
+        document.querySelectorAll('.sidebar-link').forEach(l => l.classList.remove('active'));
+        linkEl.classList.add('active');
+
+        const titles = { dashboard: 'Dashboard', endpoints: 'API Endpoints', playground: 'Playground', architecture: 'Architecture' };
+        document.getElementById('page-title-text').textContent = titles[pageId] || pageId;
+
+        // Close mobile sidebar
+        document.getElementById('sidebar').classList.remove('open');
+    }
+
+    function toggleSidebar() {
+        document.getElementById('sidebar').classList.toggle('open');
+    }
+
+    // =========================================
+    //  DATA FETCHING
+    // =========================================
+    function formatUptime(seconds) {
+        if (seconds < 60) return seconds + 's';
+        if (seconds < 3600) return Math.floor(seconds / 60) + 'm ' + (seconds % 60) + 's';
+        const h = Math.floor(seconds / 3600);
+        const m = Math.floor((seconds % 3600) / 60);
+        return h + 'h ' + m + 'm';
+    }
+
+    async function resetSystem() {
+        if (!confirm("Are you sure you want to reset the system state? This will clear all active conversations, suppression keys, and reload seed data.")) return;
+        try {
+            const res = await fetch('/v1/reset', { method: 'POST' });
+            const data = await res.json();
+            alert(data.message);
+            refreshDashboard();
+        } catch (e) {
+            alert("Failed to reset system.");
+        }
+    }
+
+    async function refreshDashboard() {
+        try {
+            // Health
+            const healthRes = await fetch('/v1/healthz');
+            const health = await healthRes.json();
+
+            document.getElementById('m-uptime').textContent = formatUptime(health.uptime_seconds);
+            document.getElementById('m-merchants').textContent = health.contexts_loaded.merchant;
+            document.getElementById('m-triggers').textContent = health.contexts_loaded.trigger;
+            document.getElementById('m-categories').textContent = health.contexts_loaded.category;
+
+            document.getElementById('health-badge').textContent = 'Healthy';
+            document.getElementById('sidebar-status-text').textContent = 'System Operational';
+        } catch (e) {
+            document.getElementById('health-badge').textContent = 'Unavailable';
+            document.getElementById('health-badge').style.background = 'var(--color-error-subtle)';
+            document.getElementById('health-badge').style.color = 'var(--color-error)';
+        }
+
+        try {
+            // Metadata
+            const metaRes = await fetch('/v1/metadata');
+            const meta = await metaRes.json();
+
+            document.getElementById('meta-team').textContent = meta.team_name;
+            document.getElementById('meta-version').textContent = 'v' + meta.version;
+            document.getElementById('meta-env').textContent = meta.environment;
+            document.getElementById('meta-arch').textContent = meta.architecture;
+            document.getElementById('meta-model').textContent = meta.model;
+            document.getElementById('meta-llm').textContent = meta.llm_provider;
+            document.getElementById('meta-storage').textContent = meta.storage;
+            document.getElementById('meta-approach').textContent = meta.approach;
+        } catch (e) {
+            // silent
+        }
+
+        document.getElementById('last-refresh-text').textContent = 'Updated ' + new Date().toLocaleTimeString();
+    }
+
+    // =========================================
+    //  CHAT PLAYGROUND
+    // =========================================
+    function addChatMsg(sender, text) {
+        const container = document.getElementById('chat-messages');
+        const div = document.createElement('div');
+        div.className = 'chat-msg ' + sender;
+        div.innerHTML = '<div class="chat-msg-label">' + (sender === 'bot' ? 'Bot' : 'You') + '</div>' + escapeHtml(text);
+        container.appendChild(div);
+        container.scrollTop = container.scrollHeight;
+    }
+
+    function escapeHtml(str) {
+        const d = document.createElement('div');
+        d.textContent = str;
+        return d.innerHTML;
+    }
+
+    async function sendChat() {
+        const input = document.getElementById('chat-input');
+        const msg = input.value.trim();
+        if (!msg) return;
+
+        input.value = '';
+        chatTurn++;
+        addChatMsg('user', msg);
+
+        const btn = document.getElementById('chat-send-btn');
+        btn.disabled = true;
+        btn.textContent = '…';
+
+        try {
+            const res = await fetch('/v1/reply', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    conversation_id: chatConvId,
+                    merchant_id: 'playground_merchant',
+                    customer_id: 'playground_user',
+                    message: msg,
+                    turn_number: chatTurn,
+                    received_at: new Date().toISOString()
+                })
+            });
+            const data = await res.json();
+
+            if (data.body) {
+                addChatMsg('bot', data.body);
+            } else {
+                addChatMsg('bot', '(no reply — duplicate or auto-reply suppressed)');
+            }
+
+            document.getElementById('chat-meta-intent').textContent = data.intent || '—';
+            document.getElementById('chat-meta-state').textContent = data.conversation_state || '—';
+            document.getElementById('chat-meta-turn').textContent = data.turn_number || chatTurn;
+            document.getElementById('chat-meta-action').textContent = data.action || '—';
+        } catch (e) {
+            addChatMsg('bot', 'Error connecting to the API.');
+        }
+
+        btn.disabled = false;
+        btn.textContent = 'Send →';
+    }
+
+    function resetChat() {
+        const container = document.getElementById('chat-messages');
+        container.innerHTML = '<div class="chat-msg bot"><div class="chat-msg-label">Bot</div>Send a message to begin a conversation. Try: "Yes", "call me", "STOP", or ask a question.</div>';
+        chatTurn = 0;
+        document.getElementById('chat-meta-intent').textContent = '—';
+        document.getElementById('chat-meta-state').textContent = '—';
+        document.getElementById('chat-meta-turn').textContent = '0';
+        document.getElementById('chat-meta-action').textContent = '—';
+    }
+
+    // =========================================
+    //  INIT
+    // =========================================
+    refreshDashboard();
+    setInterval(refreshDashboard, 15000);
+</script>
+
+</body>
+</html>
